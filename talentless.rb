@@ -24,7 +24,7 @@ def current_time
   Time.now.getlocal(Setting::TIME_ZONE)
 end
 
-browser = Ferrum::Browser.new(headless: false)
+browser = Ferrum::Browser.new(headless: Setting::HEADLESS)
 context = browser.contexts.create
 page = context.create_page
 
