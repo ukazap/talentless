@@ -2,7 +2,7 @@
 
 Automate punch in/punch out in Talenta.
 
-# Setup
+## Setup
 
 Install the following items:
 
@@ -16,7 +16,7 @@ Install the following items:
   bundle install --without=development
   ````
 
-# Usage
+## Usage
 
 Set the following environment variables and run the script:
 
