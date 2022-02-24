@@ -34,7 +34,7 @@ page.command("Page.setGeolocationOverride", latitude: Setting::LATITUDE, longitu
 
 page.go_to(base_url)
 
-puts "Logging in as #{Setting::EMAIL} now..."
+print "Logging in as `#{Setting::EMAIL}`... "
 
 email_input = page.at_css("input#user_email")
 email_input.focus.type(Setting::EMAIL)
@@ -44,7 +44,7 @@ password_input.focus.type(Setting::PASSWORD)
 
 previous_url = page.current_url
 
-sign_in_button = page.at_css("button#new-signin-button")
+sign_in_button = page.at_css("#new-signin-button")
 sign_in_button.click
 
 wait_until do
@@ -56,19 +56,29 @@ if login_failed?(page)
   raise "Login failed."
 end
 
-puts "Logged in."
+puts "we're in."
 
 page.go_to(base_url("/live-attendance"))
 
 wait_until { page.at_css("#tl-live-attendance-index").inner_text.match?(/Loading/) }
 wait_until { !page.at_css("#tl-live-attendance-index").inner_text.match?(/Loading/) }
 
-last_time, last_action, _ =
+log = 
   if page.at_css(".tl-blankslate").nil?
-    page.css("#tl-live-attendance-index ul li").last&.inner_text.to_s.split("\n\n")
+    page.css("#tl-live-attendance-index ul li").map { |li| li.inner_text.split("\n\n").take(2) }
   else
     []
   end
+
+if not log.empty?
+  puts "\nLog:"
+  log.each do |i|
+    puts i.join(": ")
+  end
+  puts ""
+end
+
+last_time, last_action = log.last
 
 case last_action
 when nil
