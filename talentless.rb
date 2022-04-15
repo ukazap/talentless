@@ -67,8 +67,8 @@ def run
 
   page.go_to(base_url("/live-attendance"))
 
-  wait_until { page.at_css("#tl-live-attendance-index").inner_text.match?(/Loading/) }
-  wait_until { !page.at_css("#tl-live-attendance-index").inner_text.match?(/Loading/) }
+  wait_until { page.at_css("#tl-live-attendance-index")&.inner_text.to_s.match?(/Loading/) }
+  wait_until { !page.at_css("#tl-live-attendance-index")&.inner_text.to_s.match?(/Loading/) }
 
   holiday = page.at_css(".schedule-time__type")&.inner_text&.strip
 
