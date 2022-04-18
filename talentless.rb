@@ -72,9 +72,8 @@ def run
 
   holiday = page.at_css(".schedule-time__type")&.inner_text&.strip
 
-  if holiday != "N"
-    return "Day off: #{holiday}"
-  end
+  return "Enjoy your weekend, that's an order!" if holiday == "dayoff"
+  return "Day off: #{holiday}" if holiday != "N"
 
   log = 
     if page.at_css(".tl-blankslate").nil?
