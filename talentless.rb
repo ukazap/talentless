@@ -72,7 +72,7 @@ def run
 
   holiday = page.at_css(".schedule-time__type")&.inner_text&.strip
 
-  if not holiday.empty?
+  if holiday != "N"
     return "Day off: #{holiday}"
   end
 
