@@ -98,6 +98,7 @@ def run
       puts "Clocking in..."
       clock_in_button = page.css(".btn-primary").find { |b| b.inner_text == "Clock In" }
       clock_in_button.click
+      send_to_slack("Clocked in :smile:")
       return "Clocked in."
     else
       raise "Cannot clock in now #{current_time}"
@@ -110,6 +111,7 @@ def run
       puts "Clocking out..."
       clock_out_button = page.css(".btn-primary").find { |b| b.inner_text == "Clock Out" }
       clock_out_button.click
+      send_to_slack("Clocked out :smile:")
       return "Clocked out."
     else
       raise "Cannot clock out now #{current_time}"
@@ -124,7 +126,6 @@ end
 begin
   result_message = run
   puts result_message
-  send_to_slack("#{result_message} :smile:")
 rescue => error
   send_to_slack("#{error.message} :frowning:")
   raise error
