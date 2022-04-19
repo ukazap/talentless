@@ -113,8 +113,8 @@ def run
       clock_out_button.click
       send_to_slack("Clocked out :smile:")
       return "Clocked out."
-    else
-      raise "Cannot clock out now #{current_time}"
+#     else
+#       raise "Cannot clock out now #{current_time}"
     end
   when "Clock Out"
     return "All good today."
