@@ -1,7 +1,7 @@
 name: Clock Out
 on:
   schedule:
-  - cron: "*/10 10-13 * * *"
+  - cron: "*/5 11-13 * * *"
   workflow_dispatch:
 jobs:
   run:
