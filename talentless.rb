@@ -21,6 +21,17 @@ def wait_until
   end
 end
 
+def wait_until_no_error
+  loop do
+    begin
+      yield
+      break
+    rescue
+      print "."
+    end
+  end
+end
+
 def current_time
   Time.now.getlocal(Setting::TIME_ZONE)
 end
@@ -31,7 +42,11 @@ def send_to_slack(message)
 end
 
 def run
-  browser = Ferrum::Browser.new(headless: Setting::HEADLESS)
+  if current_time.saturday? or current_time.sunday?
+    return "Enjoy your weekend, that's an order!"
+  end
+
+  browser = Ferrum::Browser.new(headless: Setting::HEADLESS, window_size: [3840, 2160])
   context = browser.contexts.create
   page = context.create_page
 
@@ -41,7 +56,7 @@ def run
 
   page.go_to(base_url)
 
-  print "Logging in as `#{Setting::EMAIL}`... "
+  print "Logging in as `#{Setting::EMAIL}`..."
 
   email_input = page.at_css("input#user_email")
   email_input.focus.type(Setting::EMAIL)
@@ -63,7 +78,37 @@ def run
     raise "Login failed."
   end
 
-  puts "we're in."
+  puts "We're in."
+
+  print "Checking whether we take days off..."
+
+  page.go_to(base_url("/my-info/time-off?monthCompare=#{current_time.strftime("%m")}&yearCompare=#{current_time.year}"))
+
+  wait_until_no_error do
+    page.at_css("#timeOffHistory_length").click
+    page.css("#timeOffHistory_length ul li").find {|li| li.inner_text == "All" }.click
+  end
+
+  header = page.css("table#timeOffHistory thead th").map(&:inner_text)
+  time_offs = page.css("table#timeOffHistory tbody tr").map do |tr|
+    time_off = header.zip(tr.css("td").map(&:inner_text)).to_h
+
+    start_date = Time.parse(time_off["Start Date"], current_time)
+    end_date = Time.parse("#{time_off["End Date"]} 23:59:59", current_time) # let's throw leap seconds to the sea
+    
+    {
+      range: start_date..end_date,
+      effective: time_off["Status"] == "Approved" && time_off["Canceled"] == "-"
+    }
+  end
+
+  time_off_today = time_offs.find { |t| t[:effective] && t[:range].include?(current_time) }
+
+  if time_off_today
+    return "We have days offfff!!! #{time_off_today}"
+  else
+    puts "Nope, no day off today."
+  end
 
   page.go_to(base_url("/live-attendance"))
 
@@ -71,11 +116,9 @@ def run
   wait_until { !page.at_css("#tl-live-attendance-index")&.inner_text.to_s.match?(/Loading/) }
 
   holiday = page.at_css(".schedule-time__type")&.inner_text&.strip
-
-  return "Enjoy your weekend, that's an order!" if holiday == "dayoff"
   return "Day off: #{holiday}" if holiday != "N"
 
-  log = 
+  log =
     if page.at_css(".tl-blankslate").nil?
       page.css("#tl-live-attendance-index ul li").map { |li| li.inner_text.split("\n\n").take(2) }
     else
