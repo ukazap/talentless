@@ -27,6 +27,7 @@ jobs:
       run: BROWSER_PATH=$(which chrome) bundle exec ruby talentless.rb
       env:
         TALENTLESS_HEADLESS: true
+        TALENTLESS_HUSH_HUSH: true
         TALENTLESS_EMAIL: ${{secrets.TALENTLESS_EMAIL}}
         TALENTLESS_PASSWORD: ${{secrets.TALENTLESS_PASSWORD}}
         TALENTLESS_LATITUDE: ${{secrets.TALENTLESS_LATITUDE}}

@@ -2,6 +2,16 @@ require "ferrum"
 require "http"
 require_relative "setting.rb"
 
+def print_or_hush(message)
+  return if Setting.HUSH_HUSH
+  print(message)
+end
+
+def puts_or_hush(message)
+  return if Setting.HUSH_HUSH
+  puts(message)
+end
+
 def base_url(path = nil)
   "https://hr.talenta.co#{path}"
 end
@@ -27,7 +37,7 @@ def wait_until_no_error
       yield
       break
     rescue
-      print "."
+      print_or_hush "."
     end
   end
 end
@@ -56,7 +66,7 @@ def run
 
   page.go_to(base_url)
 
-  print "Logging in as `#{Setting::EMAIL}`..."
+  print_or_hush "Logging in as `#{Setting::EMAIL}`..."
 
   email_input = page.at_css("input#user_email")
   email_input.focus.type(Setting::EMAIL)
@@ -78,9 +88,9 @@ def run
     raise "Login failed."
   end
 
-  puts "We're in."
+  puts_or_hush "We're in."
 
-  print "Checking whether we take days off..."
+  print_or_hush "Checking whether we take days off..."
 
   page.go_to(base_url("/my-info/time-off?monthCompare=#{current_time.strftime("%m")}&yearCompare=#{current_time.year}"))
 
@@ -107,7 +117,7 @@ def run
   if time_off_today
     return "We have days offfff!!! #{time_off_today}"
   else
-    puts "Nope, no day off today."
+    puts_or_hush "Nope, no day off today."
   end
 
   page.go_to(base_url("/live-attendance"))
@@ -126,11 +136,11 @@ def run
     end
 
   if not log.empty?
-    puts "\nLog:"
+    puts_or_hush "\nLog:"
     log.each do |i|
-      puts i.join(": ")
+      puts_or_hush i.join(": ")
     end
-    puts ""
+    puts_or_hush ""
   end
 
   last_time, last_action = log.last
@@ -138,7 +148,7 @@ def run
   case last_action
   when nil
     if (8..10).include?(current_time.hour)
-      puts "Clocking in..."
+      puts_or_hush "Clocking in..."
       clock_in_button = page.css(".btn-primary").find { |b| b.inner_text == "Clock In" }
       clock_in_button.click
       send_to_slack("Clocked in :smile:")
@@ -151,7 +161,7 @@ def run
       Time.parse("#{last_time} #{Setting::TIME_ZONE}") + 60 * 60 * 9
     
     if current_time >= earliest_time_to_clock_out
-      puts "Clocking out..."
+      puts_or_hush "Clocking out..."
       clock_out_button = page.css(".btn-primary").find { |b| b.inner_text == "Clock Out" }
       clock_out_button.click
       send_to_slack("Clocked out :smile:")
@@ -166,10 +176,16 @@ def run
   end
 end
 
+start_time = current_time
+
 begin
   result_message = run
-  puts result_message
+  puts_or_hush result_message
 rescue => error
   send_to_slack("#{error.message} :frowning:")
   raise error
+end
+
+if Setting::HUSH_HUSH && (current_time - start_time) < 180
+  sleep 180 - current_time - start_time
 end
