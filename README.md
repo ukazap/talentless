@@ -1,6 +1,6 @@
 # Talentless
 
-Automate punch in/punch out in Talenta.
+Automate punch in/punch out in [Talenta](https://www.talenta.co/en/).
 
 ## Setup
 
