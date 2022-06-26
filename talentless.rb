@@ -187,5 +187,5 @@ rescue => error
 end
 
 if Setting::HUSH_HUSH && (current_time - start_time) < 180
-  sleep 180 - current_time - start_time
+  sleep 180 - (current_time - start_time)
 end
