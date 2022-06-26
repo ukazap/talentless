@@ -3,12 +3,12 @@ require "http"
 require_relative "setting.rb"
 
 def print_or_hush(message)
-  return if Setting.HUSH_HUSH
+  return if Setting::HUSH_HUSH
   print(message)
 end
 
 def puts_or_hush(message)
-  return if Setting.HUSH_HUSH
+  return if Setting::HUSH_HUSH
   puts(message)
 end
 
