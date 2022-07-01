@@ -92,24 +92,31 @@ def run
 
   print_or_hush "Checking whether we take days off..."
 
-  page.go_to(base_url("/my-info/time-off?monthCompare=#{current_time.strftime("%m")}&yearCompare=#{current_time.year}"))
-
-  wait_until_no_error do
-    page.at_css("#timeOffHistory_length").click
-    page.css("#timeOffHistory_length ul li").find {|li| li.inner_text == "All" }.click
-  end
-
-  header = page.css("table#timeOffHistory thead th").map(&:inner_text)
-  time_offs = page.css("table#timeOffHistory tbody tr").map do |tr|
-    time_off = header.zip(tr.css("td").map(&:inner_text)).to_h
-
-    start_date = Time.parse(time_off["Start Date"], current_time)
-    end_date = Time.parse("#{time_off["End Date"]} 23:59:59", current_time) # let's throw leap seconds to the sea
+  time_offs = [current_time.month - 1, current_time.month].reduce([]) do |acc, month|
+    page.go_to(base_url("/my-info/time-off?monthCompare=#{month.to_s.rjust(2, "0")}&yearCompare=#{current_time.year}"))
     
-    {
-      range: start_date..end_date,
-      effective: time_off["Status"] == "Approved" && time_off["Canceled"] == "-"
-    }
+    wait_until_no_error do
+      page.at_css("#timeOffHistory_length").click
+      page.css("#timeOffHistory_length ul li").find {|li| li.inner_text == "All" }.click
+    end
+
+    header = page.css("table#timeOffHistory thead th").map(&:inner_text)
+
+    acc + page.css("table#timeOffHistory tbody tr").map do |tr|
+      time_off = header.zip(tr.css("td").map(&:inner_text)).to_h
+
+      if time_off["Start Date"].nil?
+        nil
+      else
+        start_date = Time.parse(time_off["Start Date"], current_time)
+        end_date = Time.parse("#{time_off["End Date"]} 23:59:59", current_time) # let's throw leap seconds to the sea
+        
+        {
+          range: start_date..end_date,
+          effective: time_off["Status"] == "Approved" && time_off["Canceled"] == "-"
+        }
+      end
+    end.compact
   end
 
   time_off_today = time_offs.find { |t| t[:effective] && t[:range].include?(current_time) }

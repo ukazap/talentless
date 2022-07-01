@@ -6,5 +6,5 @@ module Setting
   TIME_ZONE     = ENV.fetch("TALENTLESS_TIME_ZONE", "+07:00")
   HEADLESS      = ENV.fetch("TALENTLESS_HEADLESS", "true") == "true"
   SLACK_WEBHOOK = ENV["TALENTLESS_SLACK_WEBHOOK"].to_s
-  HUSH_HUSH     = ENV.fetch("TALENTLESS_HUSH_HUSH", "true") == "true" # silent logs
+  HUSH_HUSH     = ENV["TALENTLESS_HUSH_HUSH"] == "true" # silent logs
 end
